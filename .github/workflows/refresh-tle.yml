@@ -1,0 +1,50 @@
+name: Refresh TLE
+
+on:
+  schedule:
+    - cron: "17 4,16 * * *"   # twice a day
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    name: Pull current elements from CelesTrak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download element sets
+        run: |
+          set -euo pipefail
+          base="https://celestrak.org/NORAD/elements/gp.php"
+          declare -A groups=(
+            [stations]="stations"
+            [visual]="visual"
+          )
+          mkdir -p data/tle
+          for name in "${!groups[@]}"; do
+            curl -fsS --retry 3 --retry-delay 5 \
+              "$base?GROUP=${groups[$name]}&FORMAT=tle" \
+              -o "data/tle/$name.txt"
+            # CelesTrak serves an HTML error page with HTTP 200 when rate-limited
+            if ! grep -qE '^1 [0-9]{5}' "data/tle/$name.txt"; then
+              echo "::error::$name.txt does not look like TLE data"
+              head -5 "data/tle/$name.txt"
+              exit 1
+            fi
+          done
+
+      - name: Commit if changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- data/tle; then
+            echo "No TLE changes."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/tle
+          git commit -m "chore: refresh TLE $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>skypass — visible satellite passes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>skypass</h1>
+    <p class="tagline">When to look up: visible passes of the ISS and bright satellites from your location.</p>
+  </header>
+
+  <main>
+    <section id="setup">
+      <form id="controls">
+        <label>
+          Latitude
+          <input type="number" id="lat" value="50.6839" step="0.0001" min="-90" max="90">
+        </label>
+        <label>
+          Longitude
+          <input type="number" id="lon" value="10.9114" step="0.0001" min="-180" max="180">
+        </label>
+        <label>
+          Days ahead
+          <input type="number" id="days" value="3" min="1" max="10">
+        </label>
+        <button type="submit">Find passes</button>
+      </form>
+      <p id="status" role="status">Scaffold — the prediction engine is not wired up yet.</p>
+    </section>
+
+    <section id="results" hidden>
+      <ol id="passes"></ol>
+    </section>
+  </main>
+
+  <footer>
+    Orbital elements: <a href="https://celestrak.org/">CelesTrak</a> (snapshot in
+    <code>data/tle/</code>, refreshed by CI). Propagation runs in the browser.
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
